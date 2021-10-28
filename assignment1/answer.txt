@@ -1,0 +1,24 @@
+Exercise 1:
+Qc) 
+How does the number of parameters of these distributions scale with the number of different words in the corpus? Explain your answer!
+
+Ac) 
+The n-gram base their distribution according to the n parameter (the number of word choosen) and the total words in the corpus. 
+So by increasing the n parameter we take more word together and basing on the n-1 words the frequency as to be higher.
+For example in unigram the probability is very low because we found the probability of a single word in all corpus, instead in a bigram model
+we take a pair of two word and we calculate his probability according to the frequency of the previous word.
+This trend go on by increasing the n parameter.
+
+Exercise 2:
+Qc)
+Describe the results of the three sentence generators you implemented. Try to explain the results.
+
+Ac)
+Obviously by increasing the n parameter the sentence gain more meaning. This happen because, as we said before, we choose the word according to the previous one.
+The first example of this improvement is that in bigram and in trigram the first word that we choose is actually a word at the begin of the sentence
+because we starting to drawing sample by filtering the list with tuple that start with "begin_of_sentence".
+Continuing on this trend we can see also that the generated sentence gain more meaning by increasing the n parameter because we choose word that
+were actually in sequence in the corpus because we continue to filter the list by the: 
+(prev_word,actual_word) in bigram and
+(prev_prev_word,prev_word,actual_word) in trigram
+This happens also by choosing the tuple with an higher probability because before the sentence generation we sorted the dictionary in decrease order.
