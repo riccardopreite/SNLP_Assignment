@@ -1,4 +1,4 @@
-
+# Riccardo Preite 4196104
 from preprocess_corpus import *
 from unigram import *
 from bigram import *
@@ -38,12 +38,19 @@ def main():
     bigram_prob_sorted = sortDict(bigram_probability)
     trigram_prob_sorted = sortDict(trigram_probability)
 
+    print("##########################")
+    print("START OF SENTENCE GEN\n\n")
+
     """Generating uni,bi,tri gram sentence"""
     unigram_gen_sentence(unigram_prob_sorted)
     bigram_gen_sentence(bigram_prob_sorted)
     trigram_gen_sentence(trigram_prob_sorted,bigram_prob_sorted)
-    
+    print("END OF SENTENCE GEN")
+    print("##########################\n\n")
     show_answer()
+
+    print("END OF SHOW ANSWER")
+    print("##########################\n\n")
     
 
 

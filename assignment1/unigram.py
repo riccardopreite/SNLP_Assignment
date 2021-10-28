@@ -1,3 +1,4 @@
+# Riccardo Preite 4196104
 from generate_word import generate_word
 
 """Unigram distribution"""

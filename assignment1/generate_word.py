@@ -1,3 +1,4 @@
+# Riccardo Preite 4196104
 from random import random
 
 """Generate word sample function according to summation in the slides."""

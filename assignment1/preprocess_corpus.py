@@ -1,6 +1,4 @@
-"Simone Preite 3385035"
-
-# utilities for preprocessing
+# Riccardo Preite 4196104
 
 from io import TextIOWrapper
 
@@ -33,7 +31,6 @@ def preprocessing_line(line_sentence: str):
     """Split and convert to lower case the words of the line"""
     line_splitted=line_sentence.split(" ")
     line_splitted = [word.lower() for word in line_splitted]
-    # line_splitted=list(map(lambda word_line: word_line.lower(), line_splitted))
     
     return line_splitted
 
