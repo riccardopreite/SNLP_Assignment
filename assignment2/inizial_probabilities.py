@@ -10,8 +10,9 @@ Returns: float; initial probability of the given state
 '''
 def initial_state_probabilities(state:str, internal_representation:dict) -> float:
     if state in internal_representation.keys():
+        print("Returning probabilities of initial state: "+state)
         return internal_representation[state]
-    print("ERROR - Unknown initial state tag. Returning 0")
+    print("ERROR - Unknown initial state: "+state+" tag. Returning 0")
     return 0.0
 
 '''
@@ -26,10 +27,8 @@ def estimate_initial_state_probabilities(corpus) -> dict:
         first_word.append(sentence[0])
     
     counted_label : dict = Counter(word[1] for word in first_word)
-
-
     
-    #total_occourence: int = sum(counted_label.values())
-    initial_probabilities_dict: dict = {label: counter/sum(counted_label.values()) for label,counter in counted_label.items() } 
+    total_occourence: int = sum(counted_label.values())
+    initial_probabilities_dict: dict = {label: counter/total_occourence for label,counter in counted_label.items() } 
     # print(initial_probabilities_dict)
     return initial_probabilities_dict

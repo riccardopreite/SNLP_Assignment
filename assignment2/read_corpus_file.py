@@ -1,5 +1,5 @@
 from collections import Counter
-
+from typing import Union, Optional, List, Tuple, Dict
 
 def read_corpus(CORPUS_FILE_NAME,unique_token:dict)-> list:
     sentences = []
@@ -35,11 +35,26 @@ def count_token(CORPUS_FILE_NAME) -> dict:
             unique_token :dict = {token:counter for token,counter in countered_token.items() if counter == 1}
             return unique_token
     
+def generate_unique_label_and_token(sentences:list)->Tuple[list,list]:
+    label:list = []
+    token_label:list = []
+    for sentence in sentences:
+            for word in sentence:
+                if word[0] != '<unknown>':
+                    label.append(word[1])
+                    token_label.append(word[0])
 
-def read_corpus_file(CORPUS_FILE_NAME) -> list:
-    unique_token: dict = count_token(CORPUS_FILE_NAME)
-    sentences: list = read_corpus(CORPUS_FILE_NAME,unique_token)
-    return sentences
+
+    unique_label = list(set(label))
+    unique_token = list(set(token_label))
+    return unique_label,unique_token
+
+def read_corpus_file(CORPUS_FILE_NAME) -> Tuple[list,list,list]:
+    unique_token_once: dict = count_token(CORPUS_FILE_NAME)
+    sentences: list = read_corpus(CORPUS_FILE_NAME,unique_token_once)
+    unique_label,unique_token = generate_unique_label_and_token(sentences)
+    
+    return sentences,unique_label,unique_token
 
 
 def main():
