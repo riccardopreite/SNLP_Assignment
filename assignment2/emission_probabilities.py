@@ -1,3 +1,4 @@
+import json
 '''
 Implement the matrix of emmision probabilities.
 Parameters:	state: string;
@@ -35,5 +36,7 @@ def estimate_emission_probabilities(corpus:list,unique_label:list,unique_token:l
                 emission_probabilities_dict[label_key] = emission_probabilities_dict[label_key] + 1
     total_occourence: int = sum(emission_probabilities_dict.values())
     emission_probabilities_dict = {label_transition: counter/total_occourence for label_transition,counter in emission_probabilities_dict.items() }
+    with open("emission_probabilities_dict.json","w+") as result:
+        json.dump(emission_probabilities_dict,result)
 
     return emission_probabilities_dict

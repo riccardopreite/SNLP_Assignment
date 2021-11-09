@@ -3,7 +3,7 @@
 ################################################################################
 from collections import Counter
 import sys
-from inizial_probabilities import *
+from initial_probabilities import *
 from transition_probabilities import *
 from emission_probabilities import *
 
@@ -22,6 +22,7 @@ def test_initial_state_probabilities(initial_state_probabilities_dict:dict):
     
 def test_transition_state_probabilities(transition_state_probabilities_dict:dict):
     print(transition_probabilities('I-LOC','B-MISC',transition_state_probabilities_dict))    
+    print(transition_probabilities('O','O',transition_state_probabilities_dict))    
     print(transition_probabilities('I','B-MISC',transition_state_probabilities_dict)) 
 
 def test_emission_state_probabilities(emission_state_probabilities_dict:dict):

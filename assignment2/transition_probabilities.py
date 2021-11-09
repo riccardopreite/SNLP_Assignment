@@ -1,3 +1,4 @@
+import json
 '''
 Implement the matrix of transition probabilities.
 Parameters:	from_state: string;
@@ -24,17 +25,23 @@ Returns: data structure containing the parameters of the matrix of transition pr
 def estimate_transition_probabilities(corpus:list,unique_label:list)-> dict:
     transition_probabilities_dict:dict = {}
     for label in unique_label:
-        for sentence in corpus:
-            for word_index, word in enumerate(sentence):
+        for in_label in unique_label:
+            label_key:str = label+"->"+in_label
+            transition_probabilities_dict[label_key] = 0
+    
 
-                if word[1] == label and word_index+1 < len(sentence):
-                    next_word = sentence[word_index+1]
-                    label_key:str = word[1]+"->"+next_word[1]
-                    if label_key in transition_probabilities_dict:
-                        transition_probabilities_dict[label_key] = transition_probabilities_dict[label_key] + 1
-                    else:
-                        transition_probabilities_dict[label_key] = 1
+    for sentence in corpus:
+        for word_index, word in enumerate(sentence):
+            if word_index+1 < len(sentence):
+                next_word = sentence[word_index+1]
+                label_key:str = word[1]+"->"+next_word[1]
+                if label_key in transition_probabilities_dict:
+                    transition_probabilities_dict[label_key] = transition_probabilities_dict[label_key] + 1     
 
     total_occourence: int = sum(transition_probabilities_dict.values())
     transition_probabilities_dict = {label_transition: counter/total_occourence for label_transition,counter in transition_probabilities_dict.items() }
+    
+    with open("transition_probabilities_dict.json","w+") as result:
+        json.dump(transition_probabilities_dict,result, sort_keys=True)
+
     return transition_probabilities_dict

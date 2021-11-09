@@ -1,5 +1,5 @@
 from collections import Counter
-
+import json
 
 '''
 Implement the probability distribution of the initial states.
@@ -30,5 +30,6 @@ def estimate_initial_state_probabilities(corpus) -> dict:
     
     total_occourence: int = sum(counted_label.values())
     initial_probabilities_dict: dict = {label: counter/total_occourence for label,counter in counted_label.items() } 
-    # print(initial_probabilities_dict)
+    with open("initial_probabilities_dict.json","w+") as result:
+        json.dump(initial_probabilities_dict,result, sort_keys=True)
     return initial_probabilities_dict

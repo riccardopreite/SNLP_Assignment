@@ -1,3 +1,4 @@
+import json
 from collections import Counter
 from typing import Union, Optional, List, Tuple, Dict
 
@@ -47,6 +48,10 @@ def generate_unique_label_and_token(sentences:list)->Tuple[list,list]:
 
     unique_label = list(set(label))
     unique_token = list(set(token_label))
+    with open("unique_label.json","w+") as result:
+        json.dump(unique_label,result, sort_keys=True)
+    with open("unique_token.json","w+") as result:
+        json.dump(unique_token,result, sort_keys=True)
     return unique_label,unique_token
 
 def read_corpus_file(CORPUS_FILE_NAME) -> Tuple[list,list,list]:
