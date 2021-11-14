@@ -1,3 +1,5 @@
+# Riccardo Preite 4196104
+
 # Exercise 2 ###################################################################
 from operator import itemgetter
 from initial_probabilities import *

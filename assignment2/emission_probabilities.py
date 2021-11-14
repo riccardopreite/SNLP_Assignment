@@ -1,3 +1,5 @@
+# Riccardo Preite 4196104
+
 from dict_utils import save_file
 '''
 Implement the matrix of emmision probabilities.
