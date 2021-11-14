@@ -1,14 +1,18 @@
 ################################################################################
 ## SNLP exercise sheet 2
 ################################################################################
-from collections import Counter
-import sys
 from initial_probabilities import *
 from transition_probabilities import *
 from emission_probabilities import *
 from viterbi import *
 from read_corpus_file import read_corpus_file
+import argparse
 
+
+# Instantiate the parser
+parser = argparse.ArgumentParser(description='Viterbi alg on corpus')
+parser.add_argument('--line', type=int, nargs='?',
+                    help='Index of line to observe > 0')
 
 CORPUS_FILE_NAME = "corpus_ner.txt"
   
@@ -31,10 +35,9 @@ def test_emission_state_probabilities(emission_state_probabilities_dict:dict):
     print(emission_probabilities('B-LOC','<unknown>',emission_state_probabilities_dict)) 
 
 
-
-
-def main():
-    sentences = read_corpus_file(CORPUS_FILE_NAME)
+def calculate_viterbi(index_observe:int):
+    
+    sentences,observed_symbol,observed_symbol_label = read_corpus_file(CORPUS_FILE_NAME,index_observe)
     
     initial_state_probabilities_dict:dict = estimate_initial_state_probabilities(corpus=sentences) 
     # test_initial_state_probabilities(initial_state_probabilities_dict)
@@ -42,30 +45,34 @@ def main():
     # test_transition_state_probabilities(transition_state_probabilities_dict)
     emission_state_probabilities_dict:dict = estimate_emission_probabilities(corpus=sentences)
     # test_emission_state_probabilities(emission_state_probabilities_dict)
+    viterbi_tag = most_likely_state_sequence(observed_symbol, initial_state_probabilities_dict, transition_state_probabilities_dict, emission_state_probabilities_dict)
+    # print(viterbi_tag)
+    print("SEQUENCE GENERATED:")
+    print(viterbi_tag)
 
-    wrong = 0
-    wrong_sentence = []
-    for sentence in sentences:
-        sentence_tag = []
-        sentence_viterbi = []
-        for word in sentence:
-            sentence_viterbi.append(word[0])
-            sentence_tag.append(word[1])
-        viterbi_tag = most_likely_state_sequence(sentence_viterbi, initial_state_probabilities_dict, transition_state_probabilities_dict, emission_state_probabilities_dict)
-        if sentence_tag != viterbi_tag:
-            sequence_dict = {
-                "index": sentences.index(sentence),
+    print("ORIGINAL SEQUENCE:")
+    print(observed_symbol_label)
+    if observed_symbol_label != viterbi_tag:
+        print("Sequence are different")
+        sequence_err_dict = {
+                "index": index_observe,
                 "generated":viterbi_tag,
-                "original":sentence_tag
-            }
-            wrong_sentence.append(sequence_dict)
-            wrong = wrong + 1
+                "original":observed_symbol_label
+        }
+        return sequence_err_dict,
+    return {}
+
+def main():
+    observed_index = 5
+    args = parser.parse_args()
+    if args.line != None:
+        observed_index = args.line
+    error = calculate_viterbi(observed_index)
     
     json_path = "result/wrong_sequence_generated.json"
-    save_file(json_path,wrong_sentence)
-    print("Number of wrong tag sequence matched ",wrong , " on " , len(sentences))
+    save_file(json_path,error)
+    return
 
-    
 if __name__ == "__main__":
     main()
 
