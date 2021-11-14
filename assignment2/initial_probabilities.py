@@ -1,5 +1,4 @@
-from collections import Counter
-import json
+from dict_utils import save_file
 
 '''
 Implement the probability distribution of the initial states.
@@ -9,10 +8,11 @@ Parameters:	state: string
 Returns: float; initial probability of the given state
 '''
 def initial_state_probabilities(state:str, internal_representation:dict) -> float:
+    """Check if the state exist in initial state and return it, else return 0.0"""
     if state in internal_representation.keys():
-        print("Returning probabilities of initial state: "+state)
+        # print("Returning probabilities of initial state: "+state)
         return internal_representation[state]
-    print("ERROR - Unknown initial state: "+state+" tag. Returning 0")
+    # print("ERROR - Unknown initial state: "+state+" tag. Returning 0")
     return 0.0
 
 '''
@@ -21,15 +21,20 @@ Parameters: corpus: list returned by the function import_corpus
 Returns: data structure containing the parameters of the probability distribution of the initial states;
             use this data structure for the argument internal_representation of the function initial_state_probabilities
 '''
-def estimate_initial_state_probabilities(corpus) -> dict:
-    first_word: list = []
+def estimate_initial_state_probabilities(corpus:list) -> dict:
+    initial_probabilities_dict = dict()
+    """First we count the occourence of each tag as init tag"""
     for sentence in corpus:
-        first_word.append(sentence[0])
+        init_tag = sentence[0][1]
+        initial_probabilities_dict[init_tag] = initial_probabilities_dict.get(init_tag,0) + 1
+
+    """Here we divide every counted init occourence for the amount of sentence in the corpus"""
+    number_of_sentences = len(corpus)
+    for label in initial_probabilities_dict:
+        initial_probabilities_dict[label] =  initial_probabilities_dict[label] / number_of_sentences
+
+    """Save json for controlling purpose"""
+    json_path = "initial/initial_probabilities_dict.json"
+    save_file(json_path,initial_probabilities_dict)
     
-    counted_label : dict = Counter(word[1] for word in first_word)
-    
-    total_occourence: int = sum(counted_label.values())
-    initial_probabilities_dict: dict = {label: counter/total_occourence for label,counter in counted_label.items() } 
-    with open("initial_probabilities_dict.json","w+") as result:
-        json.dump(initial_probabilities_dict,result, sort_keys=True)
     return initial_probabilities_dict

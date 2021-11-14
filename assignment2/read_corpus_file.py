@@ -57,10 +57,9 @@ def generate_unique_label_and_token(sentences:list)->Tuple[list,list]:
 def read_corpus_file(CORPUS_FILE_NAME) -> Tuple[list,list,list]:
     unique_token_once: dict = count_token(CORPUS_FILE_NAME)
     sentences: list = read_corpus(CORPUS_FILE_NAME,unique_token_once)
-    unique_label,unique_token = generate_unique_label_and_token(sentences)
+    # unique_label,unique_token = generate_unique_label_and_token(sentences)
     
-    return sentences,unique_label,unique_token
-
+    return sentences
 
 def main():
     unique_token: dict = count_token("corpus_ner.txt")

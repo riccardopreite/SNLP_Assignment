@@ -6,7 +6,7 @@ import sys
 from initial_probabilities import *
 from transition_probabilities import *
 from emission_probabilities import *
-
+from viterbi import *
 from read_corpus_file import read_corpus_file
 
 
@@ -30,48 +30,44 @@ def test_emission_state_probabilities(emission_state_probabilities_dict:dict):
     print(emission_probabilities('B-LOC','slovakia',emission_state_probabilities_dict))    
     print(emission_probabilities('B-LOC','<unknown>',emission_state_probabilities_dict)) 
 
+
+
+
 def main():
-    sentences,unique_label,unique_token = read_corpus_file(CORPUS_FILE_NAME)
+    sentences = read_corpus_file(CORPUS_FILE_NAME)
+    
     initial_state_probabilities_dict:dict = estimate_initial_state_probabilities(corpus=sentences) 
     # test_initial_state_probabilities(initial_state_probabilities_dict)
-   
-    transition_state_probabilities_dict:dict = estimate_transition_probabilities(corpus=sentences,unique_label=unique_label)
+    transition_state_probabilities_dict:dict = estimate_transition_probabilities(corpus=sentences)
     # test_transition_state_probabilities(transition_state_probabilities_dict)
-
-    emission_state_probabilities_dict:dict = estimate_emission_probabilities(corpus=sentences,unique_label=unique_label,unique_token=unique_token)
+    emission_state_probabilities_dict:dict = estimate_emission_probabilities(corpus=sentences)
     # test_emission_state_probabilities(emission_state_probabilities_dict)
 
-
+    wrong = 0
+    wrong_sentence = []
+    for sentence in sentences:
+        sentence_tag = []
+        sentence_viterbi = []
+        for word in sentence:
+            sentence_viterbi.append(word[0])
+            sentence_tag.append(word[1])
+        viterbi_tag = most_likely_state_sequence(sentence_viterbi, initial_state_probabilities_dict, transition_state_probabilities_dict, emission_state_probabilities_dict)
+        if sentence_tag != viterbi_tag:
+            sequence_dict = {
+                "index": sentences.index(sentence),
+                "generated":viterbi_tag,
+                "original":sentence_tag
+            }
+            wrong_sentence.append(sequence_dict)
+            wrong = wrong + 1
+    
+    json_path = "result/wrong_sequence_generated.json"
+    save_file(json_path,wrong_sentence)
+    print("Number of wrong tag sequence matched ",wrong , " on " , len(sentences))
 
     
 if __name__ == "__main__":
     main()
-
-
-
-    
-    
-    
-# Exercise 2 ###################################################################
-''''
-Implement the Viterbi algorithm for computing the most likely state sequence given a sequence of observed symbols.
-Parameters: observed_smbols: list of strings; the sequence of observed symbols
-            initial_state_probabilities_parameters: data structure containing the parameters of the probability distribution of the initial states, returned by estimate_initial_state_probabilities
-            transition_probabilities_parameters: data structure containing the parameters of the matrix of transition probabilities, returned by estimate_transition_probabilities
-            emission_probabilities_parameters: data structure containing the parameters of the matrix of emission probabilities, returned by estimate_emission_probabilities
-Returns: list of strings; the most likely state sequence
-'''
-def most_likely_state_sequence(observed_smbols, initial_state_probabilities_parameters, transition_probabilities_parameters, emission_probabilities_parameters):
-    pass
-
-
-
-
-
-
-
-
-
 
 
 
