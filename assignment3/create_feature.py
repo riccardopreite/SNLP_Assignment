@@ -2,7 +2,7 @@ from typing import Tuple
 import itertools
 
 
-def get_word_and_tag_unique(corpus: list) -> Tuple[list,list]:
+def get_word_and_tag_unique(corpus: list) -> Tuple[list,list,list]:
     word = []
     '''Initial tag'''
     tag = ['start']
@@ -15,7 +15,7 @@ def get_word_and_tag_unique(corpus: list) -> Tuple[list,list]:
    
     word_unique = list( set(word) )
     tag_unique = list( set(tag)  )
-    return word_unique,tag_unique
+    return word_unique, tag_unique, tag
 
 def build_feature_from_unique_list(word_unique: list,tag_unique: list) -> dict:
     feature = []
@@ -27,12 +27,12 @@ def build_feature_from_unique_list(word_unique: list,tag_unique: list) -> dict:
 
     feature.extend(word_tag_pair)
     feature.extend(tag_tag_pair)
+    feature = set(feature)
 
     feature_dict = { pair:index for index, pair in enumerate(feature)   }
-
     return feature_dict
 def create_feature(corpus: list)->Tuple[list, list]:
     
-    word_unique,tag_unique = get_word_and_tag_unique(corpus)
+    word_unique, tag_unique, tag = get_word_and_tag_unique(corpus)
 
     return build_feature_from_unique_list(word_unique,tag_unique),tag_unique

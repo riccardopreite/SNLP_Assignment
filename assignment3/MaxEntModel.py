@@ -1,3 +1,4 @@
+import math
 from create_feature import create_feature
 import numpy as np
 
@@ -18,6 +19,9 @@ class MaxEntModel(object):
     # has to be set by the method 'initialize'
     labels: list = None
 
+    active_features = None
+
+
     # Exercise 1 a) ###################################################################
 
     def initialize(self, corpus):
@@ -27,10 +31,15 @@ class MaxEntModel(object):
         Parameters: corpus: list of list representing the corpus, returned by the function 'import_corpus'
         '''
         print('init')
+        self.active_features = dict()
         self.corpus = corpus
         self.feature_indices, self.labels = create_feature(corpus)
+        self.theta = np.ones(max(self.feature_indices.values())+1)
 
-        self.theta = np.array([1]*len(self.feature_indices.keys()))
+        '''
+        E(f_j) = sumOverAll(x_i,y_i)f_j(x_i,yi)
+
+        '''
         # print(self.theta)
         # print(self.labels[:20])
         # print(len(self.theta))
@@ -40,7 +49,7 @@ class MaxEntModel(object):
 
     # Exercise 1 b) ###################################################################
 
-    def get_active_features(self, word, label, prev_label):
+    def get_active_features(self, word, label, prev_label) -> np.ndarray:
         '''
         Compute the vector of active features.
         Parameters: word: string; a word at some position i of a given sentence
@@ -49,9 +58,26 @@ class MaxEntModel(object):
         Returns: (numpy) array containing only zeros and ones.
         '''
 
-        # your code here
+        active_features_key = (word, label, prev_label)
+        if self.active_features.get(active_features_key, None) is not None:
+            return self.active_features[active_features_key]
+        
+        keys_list = filter(
+            lambda key_pair:
+                (key_pair[0] == word and key_pair[1] == label)
+                or 
+                (key_pair[0] == prev_label and key_pair[1] == label),
+            self.feature_indices.keys())
+        theta_copy = np.zeros(len(self.theta))
+        for key in keys_list:
+            feature_index = self.feature_indices[key] 
+            theta_copy[feature_index] = 1
 
-        pass
+        self.active_features[active_features_key] = np.array(theta_copy)
+        
+    
+        return theta_copy
+
 
     # Exercise 2 a) ###################################################################
 
@@ -63,9 +89,36 @@ class MaxEntModel(object):
         Returns: float
         '''
 
-        # your code here
+        '''
+            For each index of active features with the given pair calculating the exponential
+            e**(theta[i]*f(word,tag))  // f(word,tag) should be 1 for the way we defined the fun
+            in the end sum overall e**(theta[i]*f(word,tag)) for each tag
+         '''
+        z = 0
 
-        pass
+        for tag in self.labels:
+            multiplied_vector = self.theta * self.get_active_features(word, tag, prev_label)
+            z += np.exp(sum(
+                multiplied_vector[multiplied_vector > 0]
+                )
+            )
+
+        
+        return 1/z
+
+        return  1/sum(
+            [
+                np.exp( lambda multiplied: self.theta * self.get_active_features(word, tag, prev_label))
+                # math.e**(self.theta * self.get_active_features(word, tag, prev_label))
+                    # sum([
+                        
+                        
+                        # self.theta[index_of_feature] 
+                        # for index_of_feature in self.get_active_features(word, tag, prev_label)
+                    # ]) 
+                for tag in self.labels
+            ]
+        )
 
     # Exercise 2 b) ###################################################################
 

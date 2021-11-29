@@ -57,6 +57,8 @@ if __name__ == "__main__":
 
     maxEntropy: MaxEntModel = MaxEntModel()
     maxEntropy.initialize(corpus)
+    print(maxEntropy.get_active_features('who','WP','NNS'))
+    print(maxEntropy.cond_normalization_factor('who','NNS'))
     
     
     
