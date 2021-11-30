@@ -208,7 +208,6 @@ class MaxEntModel(object):
             
             self.train_count += 1
             self.parameter_update(word, label, prev_label, learning_rate)
-        print(self.theta[self.theta != 1])
 
         # your code here
 
@@ -270,7 +269,7 @@ class MaxEntModel(object):
                 label = word_tag[1]
                 prev_label = 'start' if index == 0 else sentence[index-1][1]
 
-                initial_empirical_feature_probabilities += self.expected_feature_count(word,label,prev_label)
+                initial_empirical_feature_probabilities += self.expected_feature_count(word,prev_label)
 
         return initial_empirical_feature_probabilities
 
@@ -291,8 +290,6 @@ class MaxEntModel(object):
             for sentence in sentences:
                 self.train_batch_count += len(sentence)
             self.theta = self.theta + learning_rate * (self.empirical_feature_count_batch(sentences) - self.expected_feature_count_batch(sentences))
-
-        print(self.theta[self.theta != 1])
         
         # your code here
 
