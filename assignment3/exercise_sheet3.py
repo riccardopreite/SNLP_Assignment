@@ -117,8 +117,8 @@ def evaluate(corpus):
     print (accuracies_A)
     print (accuracies_B)
 
-    plot_accuracy(A, word_numbers_A, accuracies_A, 'Model A')
-    plot_accuracy(B, word_numbers_B, accuracies_B, 'Model B')
+    plot_accuracy('blue', word_numbers_A, accuracies_A, 'Model A')
+    plot_accuracy('green', word_numbers_B, accuracies_B, 'Model B')
 
 def import_corpus(path_to_file: str) -> list:
     sentences = []
