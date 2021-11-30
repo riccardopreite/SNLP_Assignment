@@ -98,7 +98,7 @@ def evaluate(corpus):
     number_iteration_B: int = 1
     batch_size_B: int = 1
     learning_rate_B: int = 0.01
-    print('inizio train')
+    print('Start training')
     for i in range(iteration):
         A.train(number_iteration_A, learning_rate_A)
         B.train_batch(number_iteration_B, batch_size_B, learning_rate_B)
@@ -111,7 +111,8 @@ def evaluate(corpus):
 
             word_numbers_A.append(A.train_count)
             word_numbers_B.append(B.train_batch_count)
-            
+    
+    print('End training')
     print (accuracies_A)
     print (accuracies_B)
 
