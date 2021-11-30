@@ -57,7 +57,7 @@ def plot_accuracy(color: str, word_number: list, accuracy: list, plot_name: str)
         plt.ylim([0,1.0])
         
         plt.title(plot_name)
-        plt.savefig(plot_name+'.png')
+        plt.savefig(plot_name+'gpu.png')
         #plt.show()
         plt.clf()
 
@@ -145,5 +145,5 @@ def import_corpus(path_to_file: str) -> list:
 
 if __name__ == "__main__":
     corpus = import_corpus(CORPUS_FILE_NAME)
-    corpus_prova = corpus[:200]
+    corpus_prova = corpus[:10]
     evaluate(corpus_prova)
