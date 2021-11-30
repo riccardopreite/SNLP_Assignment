@@ -57,7 +57,8 @@ def plot_accuracy(color: str, word_number: list, accuracy: list, plot_name: str)
         plt.ylim([0,1.0])
         
         plt.title(plot_name)
-        plt.show()
+        plt.savefig(plot_name+'.png')
+        #plt.show()
         plt.clf()
 
 # Exercise 5 c) ###################################################################
