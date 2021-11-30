@@ -30,9 +30,10 @@ def test_model(A: MaxEntModel, B: MaxEntModel, test_corpus: list) ->  Tuple[floa
             word = sentence[i][0]
             label = sentence[i][1]
             prevLabel = "start" if i == 0 else sentence[i-1][1]
-
+            print('predicting')
             predicted_for_A = A.predict(word, prevLabel)
             predicted_for_B = B.predict(word, prevLabel)
+            print('A:',predicted_for_A," B:",predicted_for_B)
             correct_A += 1 if predicted_for_A == label else 0
             correct_B += 1 if predicted_for_B == label else 0
     accuracy_A: float  = correct_A / total_words
@@ -78,8 +79,8 @@ def evaluate(corpus):
     test_corpus = random.sample(corpus,k=test_size)
     train_corpus = [sentence for sentence in corpus if sentence not in test_corpus]
 
-    print(test_corpus)
-    print(train_corpus)
+    print(len(test_corpus))
+    print(len(train_corpus))
 
     A = MaxEntModel()
     A.initialize(train_corpus)
