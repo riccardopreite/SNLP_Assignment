@@ -1,4 +1,6 @@
 import math
+import random
+from typing import Tuple
 from create_feature import create_feature
 import numpy as np
 
@@ -19,13 +21,15 @@ class MaxEntModel(object):
     # has to be set by the method 'initialize'
     labels: list = None
 
-    active_features = None
-    empirical_feature_counts = None
+    active_features: dict = None
+    empirical_feature_counts: dict = None
+    train_count: int = None
+    train_batch_count: int = None
 
 
     # Exercise 1 a) ###################################################################
 
-    def initialize(self, corpus):
+    def initialize(self, corpus: list):
         '''
         Initialize the maximun entropy model, i.e., build the set of all features, the set of all labels
         and create an initial array 'theta' for the parameters of the model.
@@ -33,6 +37,8 @@ class MaxEntModel(object):
         '''
         self.active_features = dict()
         self.empirical_feature_counts = dict()
+        self.train_count = 0
+        self.train_batch_count = 0
         self.corpus = corpus
         self.feature_indices, self.labels = create_feature(corpus)
         self.theta = np.ones(max(self.feature_indices.values())+1)       
@@ -40,7 +46,7 @@ class MaxEntModel(object):
 
     # Exercise 1 b) ###################################################################
 
-    def get_active_features(self, word, label, prev_label) -> np.ndarray:
+    def get_active_features(self, word: str, label: str, prev_label: str) -> np.ndarray:
         '''
         Compute the vector of active features.
         Parameters: word: string; a word at some position i of a given sentence
@@ -72,7 +78,7 @@ class MaxEntModel(object):
 
     # Exercise 2 a) ###################################################################
 
-    def cond_normalization_factor(self, word, prev_label) -> float:
+    def cond_normalization_factor(self, word: str, prev_label: str) -> float:
         '''
         Compute the normalization factor 1/Z(x_i).
         Parameters: word: string; a word x_i at some position i of a given sentence
@@ -99,7 +105,7 @@ class MaxEntModel(object):
 
     # Exercise 2 b) ###################################################################
 
-    def conditional_probability(self, label, word, prev_label) -> float:
+    def conditional_probability(self, label: str, word: str, prev_label: str) -> float:
         '''
         Compute the conditional probability of a label given a word x_i.
         Parameters: label: string; we are interested in the conditional probability of this label
@@ -119,16 +125,9 @@ class MaxEntModel(object):
 
         return conditional_probability
 
-        # your code here
-
-    '''
-    Implement the method empirical_feature_count, which returns the vector E[ ⃗ f(xi; yi)] of the empirical
-    feature count, and the method expected_feature_count, which returns the vector E⃗[ ⃗ f(xi)]
-    of the expected feature count, given the parameters ⃗ of the current model.
-    '''
 
     # Exercise 3 a) ###################################################################
-    def empirical_feature_count(self, word, label, prev_label) -> np.ndarray:
+    def empirical_feature_count(self, word: str, label: str, prev_label: str) -> np.ndarray:
         '''
         Compute the empirical feature count given a word, the actual label of this word and the label of the previous word.
         Parameters: word: string; a word x_i some position i of a given sentence
@@ -154,7 +153,7 @@ class MaxEntModel(object):
 
     # Exercise 3 b) ###################################################################
 
-    def expected_feature_count(self, word, prev_label) -> np.ndarray:
+    def expected_feature_count(self, word: str, prev_label: str) -> np.ndarray:
         '''
         Compute the expected feature count given a word, the label of the previous word and the parameters of the current model
         (see variable theta)
@@ -177,7 +176,7 @@ class MaxEntModel(object):
 
     # Exercise 4 a) ###################################################################
 
-    def parameter_update(self, word, label, prev_label, learning_rate):
+    def parameter_update(self, word: str, label: str, prev_label: str, learning_rate: float):
         '''
         Do one learning step.
         Parameters: word: string; a randomly selected word x_i at some position i of a given sentence
@@ -185,19 +184,31 @@ class MaxEntModel(object):
                     prev_label: string; the label of the word at position i-1
                     learning_rate: float
         '''
-
-        # your code here
-
-        pass
+        gradient: np.ndarray = self.empirical_feature_count(word,label,prev_label) - self.expected_feature_count(word,prev_label)
+        
+        self.theta = self.theta + (learning_rate * gradient)
+        
 
     # Exercise 4 b) ###################################################################
 
-    def train(self, number_iterations, learning_rate=0.1):
+    def train(self, number_iterations: int, learning_rate:int =0.1):
         '''
         Implement the training procedure.
         Parameters: number_iterations: int; number of parameter updates to do
                     learning_rate: float
         '''
+        for iteration in range(number_iterations):
+            random_sentence: int = random.choice(self.corpus)
+            random_pair_index: int = random.randrange(len(random_sentence))
+
+
+            word: str = random_sentence[random_pair_index][0]
+            label: str = random_sentence[random_pair_index][1]
+            prev_label: str = 'start' if random_pair_index == 0  else random_sentence[random_pair_index-1][1]
+            
+            self.train_count += 1
+            self.parameter_update(word, label, prev_label, learning_rate)
+        print(self.theta[self.theta != 1])
 
         # your code here
 
@@ -205,41 +216,66 @@ class MaxEntModel(object):
 
     # Exercise 4 c) ###################################################################
 
-    def predict(self, word, prev_label):
+    def predict(self, word: str, prev_label: str) -> str:
         '''
         Predict the most probable label of the word referenced by 'word'
         Parameters: word: string; a word x_i at some position i of a given sentence
                     prev_label: string; the label of the word at position i-1
         Returns: string; most probable label
         '''
+        initial_label_probabilities: np.ndarray = np.zeros(len(self.labels))
+        
+        for i in range(len(self.labels)):
+            initial_label_probabilities[i] = self.conditional_probability(word, self.labels[i], prev_label)
 
-        # your code here
-
-        pass
+        return self.labels[np.argmax(initial_label_probabilities)]
 
     # Exercise 5 a) ###################################################################
 
-    def empirical_feature_count_batch(self, sentences):
+    def empirical_feature_count_batch(self, sentences: list) -> np.ndarray:
         '''
         Predict the empirical feature count for a set of sentences
         Parameters: sentences: list; a list of sentences; should be a sublist of the list returnd by 'import_corpus'
         Returns: (numpy) array containing the empirical feature count
         '''
+        initial_empirical_feature_probabilities: np.ndarray = np.zeros(len(self.feature_indices))
+        
+        for sentence in sentences:
+            index: int
+            word_tag: Tuple
+            for index, word_tag in enumerate(sentence):
+                word = word_tag[0]
+                label = word_tag[1]
+                prev_label = 'start' if index == 0 else sentence[index-1][1]
 
-        # your code here
+                initial_empirical_feature_probabilities += self.empirical_feature_count(word,label,prev_label)
+        return initial_empirical_feature_probabilities
+
 
     # Exercise 5 a) ###################################################################
-    def expected_feature_count_batch(self, sentences):
+    def expected_feature_count_batch(self, sentences: list):
         '''
         Predict the expected feature count for a set of sentences
         Parameters: sentences: list; a list of sentences; should be a sublist of the list returnd by 'import_corpus'
         Returns: (numpy) array containing the expected feature count
         '''
 
-        # your code here
+        initial_empirical_feature_probabilities: np.ndarray = np.zeros(len(self.feature_indices))
+        
+        for sentence in sentences:
+            index: int
+            word_tag: Tuple
+            for index, word_tag in enumerate(sentence):
+                word = word_tag[0]
+                label = word_tag[1]
+                prev_label = 'start' if index == 0 else sentence[index-1][1]
+
+                initial_empirical_feature_probabilities += self.expected_feature_count(word,label,prev_label)
+
+        return initial_empirical_feature_probabilities
 
     # Exercise 5 b) ###################################################################
-    def train_batch(self, number_iterations, batch_size, learning_rate=0.1):
+    def train_batch(self, number_iterations: int, batch_size: int, learning_rate: int=0.1):
         '''
         Implement the training procedure which uses 'batch_size' sentences from to training corpus
         to compute the gradient.
@@ -248,6 +284,16 @@ class MaxEntModel(object):
                     learning_rate: float
         '''
 
+        self.theta = np.ones(len(self.theta))
+
+        for iteration in range(number_iterations):
+            sentences = random.sample(self.corpus,k=batch_size)
+            for sentence in sentences:
+                self.train_batch_count += len(sentence)
+            self.theta = self.theta + learning_rate * (self.empirical_feature_count_batch(sentences) - self.expected_feature_count_batch(sentences))
+
+        print(self.theta[self.theta != 1])
+        
         # your code here
 
         pass
