@@ -20,6 +20,7 @@ class MaxEntModel(object):
     labels: list = None
 
     active_features = None
+    empirical_feature_counts = None
 
 
     # Exercise 1 a) ###################################################################
@@ -30,21 +31,11 @@ class MaxEntModel(object):
         and create an initial array 'theta' for the parameters of the model.
         Parameters: corpus: list of list representing the corpus, returned by the function 'import_corpus'
         '''
-        print('init')
         self.active_features = dict()
+        self.empirical_feature_counts = dict()
         self.corpus = corpus
         self.feature_indices, self.labels = create_feature(corpus)
-        self.theta = np.ones(max(self.feature_indices.values())+1)
-
-        '''
-        E(f_j) = sumOverAll(x_i,y_i)f_j(x_i,yi)
-
-        '''
-        # print(self.theta)
-        # print(self.labels[:20])
-        # print(len(self.theta))
-
-       
+        self.theta = np.ones(max(self.feature_indices.values())+1)       
         # your code here
 
     # Exercise 1 b) ###################################################################
@@ -81,7 +72,7 @@ class MaxEntModel(object):
 
     # Exercise 2 a) ###################################################################
 
-    def cond_normalization_factor(self, word, prev_label):
+    def cond_normalization_factor(self, word, prev_label) -> float:
         '''
         Compute the normalization factor 1/Z(x_i).
         Parameters: word: string; a word x_i at some position i of a given sentence
@@ -104,25 +95,11 @@ class MaxEntModel(object):
             )
 
         
-        return 1/z
-
-        return  1/sum(
-            [
-                np.exp( lambda multiplied: self.theta * self.get_active_features(word, tag, prev_label))
-                # math.e**(self.theta * self.get_active_features(word, tag, prev_label))
-                    # sum([
-                        
-                        
-                        # self.theta[index_of_feature] 
-                        # for index_of_feature in self.get_active_features(word, tag, prev_label)
-                    # ]) 
-                for tag in self.labels
-            ]
-        )
+        return z
 
     # Exercise 2 b) ###################################################################
 
-    def conditional_probability(self, label, word, prev_label):
+    def conditional_probability(self, label, word, prev_label) -> float:
         '''
         Compute the conditional probability of a label given a word x_i.
         Parameters: label: string; we are interested in the conditional probability of this label
@@ -131,10 +108,27 @@ class MaxEntModel(object):
         Returns: float
         '''
 
+        Z = self.cond_normalization_factor(word, prev_label)
+        multiplied_vector = self.theta * self.get_active_features(word, label, prev_label)
+
+        conditional_probability = (1/Z) * np.exp(
+            sum(
+                multiplied_vector[multiplied_vector > 0]
+            )
+        )
+
+        return conditional_probability
+
         # your code here
 
+    '''
+    Implement the method empirical_feature_count, which returns the vector E[ ⃗ f(xi; yi)] of the empirical
+    feature count, and the method expected_feature_count, which returns the vector E⃗[ ⃗ f(xi)]
+    of the expected feature count, given the parameters ⃗ of the current model.
+    '''
+
     # Exercise 3 a) ###################################################################
-    def empirical_feature_count(self, word, label, prev_label):
+    def empirical_feature_count(self, word, label, prev_label) -> np.ndarray:
         '''
         Compute the empirical feature count given a word, the actual label of this word and the label of the previous word.
         Parameters: word: string; a word x_i some position i of a given sentence
@@ -142,14 +136,25 @@ class MaxEntModel(object):
                     prev_label: string; the label of the word at position i-1
         Returns: (numpy) array containing the empirical feature count
         '''
+        
+        empirical_key = (word, label, prev_label)
+        if self.empirical_feature_counts.get(empirical_key, None) is not None:
+            return self.empirical_feature_counts[empirical_key]
 
-        # your code here
 
-        pass
+        empirical_feature = np.zeros(len(self.theta))
+        feature = self.get_active_features(word, label, prev_label)
+        active_feature = np.where(feature>0)
+
+        for index in active_feature:
+            empirical_feature[index] = 1
+
+        self.empirical_feature_counts[empirical_key] = empirical_feature
+        return self.empirical_feature_counts[empirical_key]
 
     # Exercise 3 b) ###################################################################
 
-    def expected_feature_count(self, word, prev_label):
+    def expected_feature_count(self, word, prev_label) -> np.ndarray:
         '''
         Compute the expected feature count given a word, the label of the previous word and the parameters of the current model
         (see variable theta)
@@ -157,10 +162,18 @@ class MaxEntModel(object):
                     prev_label: string; the label of the word at position i-1
         Returns: (numpy) array containing the expected feature count
         '''
+        expted_feature_count = np.zeros(len(self.theta))
 
-        # your code here
+        for label in self.labels:
+            feature = self.get_active_features(label=label,word=word,prev_label=prev_label)
+            probablity = self.conditional_probability(label=label,word=word,prev_label=prev_label)
+            
+            active_feature = np.where(feature>0)
 
-        pass
+            for index in active_feature:
+                expted_feature_count[index] += probablity
+
+        return expted_feature_count
 
     # Exercise 4 a) ###################################################################
 

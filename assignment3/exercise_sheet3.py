@@ -59,6 +59,9 @@ if __name__ == "__main__":
     maxEntropy.initialize(corpus)
     print(maxEntropy.get_active_features('who','WP','NNS'))
     print(maxEntropy.cond_normalization_factor('who','NNS'))
+    print(maxEntropy.conditional_probability('WP','who','NNS'))
+    print(maxEntropy.empirical_feature_count('who','WP','NNS'))
+    print(maxEntropy.expected_feature_count('who','NNS'))
     
     
     
