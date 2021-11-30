@@ -23,6 +23,7 @@ def test_model(A: MaxEntModel, B: MaxEntModel, test_corpus: list) ->  Tuple[floa
     correct_B = 0
     total_words = 0
     for sentence in test_corpus:
+        print("sentence in test model ",sentence)
         total_words += len(sentence)
 
         for i in range(len(sentence)):
@@ -77,6 +78,9 @@ def evaluate(corpus):
     test_corpus = random.sample(corpus,k=test_size)
     train_corpus = [sentence for sentence in corpus if sentence not in test_corpus]
 
+    print(test_corpus)
+    print(train_corpus)
+
     A = MaxEntModel()
     A.initialize(train_corpus)
 
@@ -94,13 +98,13 @@ def evaluate(corpus):
     number_iteration_B: int = 1
     batch_size_B: int = 1
     learning_rate_B: int = 0.01
-
+    print('inizio train')
     for i in range(iteration):
         A.train(number_iteration_A, learning_rate_A)
         B.train_batch(number_iteration_B, batch_size_B, learning_rate_B)
 
         if i % 10 == 0:
-
+            print('inizio test')
             accuracy_A,accuracy_B = test_model(A,B,test_corpus)
 
             accuracies_A.append(accuracy_A)
@@ -141,5 +145,5 @@ def import_corpus(path_to_file: str) -> list:
 
 if __name__ == "__main__":
     corpus = import_corpus(CORPUS_FILE_NAME)
-
-    evaluate(corpus[:200])
+    corpus_prova = corpus[:200]
+    evaluate(corpus_prova)
