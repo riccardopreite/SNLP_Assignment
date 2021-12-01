@@ -5,6 +5,10 @@ from create_feature import create_feature
 import numpy as np
 
 
+def vector_sum(vector: np.ndarray, indexes: np.ndarray):
+    return sum(map(lambda i: vector[i], indexes))
+
+
 class MaxEntModel(object):
     # training corpus
     corpus: list = None
@@ -64,14 +68,13 @@ class MaxEntModel(object):
                 or 
                 (key_pair[0] == prev_label and key_pair[1] == label),
             self.feature_indices.keys())
-        theta_copy = np.zeros(len(self.theta))
+        theta_copy = set()#np.zeros(len(self.theta))
         for key in keys_list:
             feature_index = self.feature_indices[key] 
-            theta_copy[feature_index] = 1
+            theta_copy.add(feature_index)
 
         self.active_features[active_features_key] = np.array(theta_copy)
         
-    
         return theta_copy
 
 
@@ -93,11 +96,10 @@ class MaxEntModel(object):
         z = 0
 
         for tag in self.labels:
-            multiplied_vector = self.theta * self.get_active_features(word, tag, prev_label)
-            z += np.exp(sum(
-                multiplied_vector[multiplied_vector > 0]
-                )
-            )
+            active_feature = self.get_active_features(word, tag, prev_label)
+            active_sum = vector_sum(self.theta, active_feature)
+            
+            z += np.exp(active_sum)
 
         
         return z
@@ -114,13 +116,9 @@ class MaxEntModel(object):
         '''
 
         Z = self.cond_normalization_factor(word, prev_label)
-        multiplied_vector = self.theta * self.get_active_features(word, label, prev_label)
-
-        conditional_probability = (1/Z) * np.exp(
-            sum(
-                multiplied_vector[multiplied_vector > 0]
-            )
-        )
+        active_feature = self.get_active_features(word, label, prev_label)
+        active_sum = vector_sum(self.theta, active_feature)
+        conditional_probability = (1/Z) * np.exp(active_sum)
 
         return conditional_probability
 
@@ -141,8 +139,8 @@ class MaxEntModel(object):
 
 
         empirical_feature = np.zeros(len(self.theta))
-        feature = self.get_active_features(word, label, prev_label)
-        active_feature = np.where(feature>0)
+        active_feature = self.get_active_features(word, label, prev_label)
+        # active_feature = np.where(feature>0)
 
         for index in active_feature:
             empirical_feature[index] = 1
@@ -163,10 +161,10 @@ class MaxEntModel(object):
         expted_feature_count = np.zeros(len(self.theta))
 
         for label in self.labels:
-            feature = self.get_active_features(label=label,word=word,prev_label=prev_label)
+            active_feature = self.get_active_features(label=label,word=word,prev_label=prev_label)
             probablity = self.conditional_probability(label=label,word=word,prev_label=prev_label)
             
-            active_feature = np.where(feature>0)
+            # active_feature = np.where(feature>0)
 
             for index in active_feature:
                 expted_feature_count[index] += probablity
