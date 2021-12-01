@@ -35,4 +35,5 @@ def create_feature(corpus: list)->Tuple[list, list]:
     
     word_unique, tag_unique, tag = get_word_and_tag_unique(corpus)
 
-    return build_feature_from_unique_list(word_unique,tag_unique),tag_unique
+    # return build_feature_from_unique_list(word_unique,tag_unique),tag
+    return build_feature_from_unique_list(word_unique,tag_unique),tag

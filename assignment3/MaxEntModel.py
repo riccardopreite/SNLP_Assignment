@@ -41,8 +41,7 @@ class MaxEntModel(object):
         self.train_batch_count = 0
         self.corpus = corpus
         self.feature_indices, self.labels = create_feature(corpus)
-        self.theta = np.ones(max(self.feature_indices.values())+1)       
-        # your code here
+        self.theta = np.ones(len(self.feature_indices))       
 
     # Exercise 1 b) ###################################################################
 
@@ -209,10 +208,6 @@ class MaxEntModel(object):
             self.train_count += 1
             self.parameter_update(word, label, prev_label, learning_rate)
 
-        # your code here
-
-        pass
-
     # Exercise 4 c) ###################################################################
 
     def predict(self, word: str, prev_label: str) -> str:
@@ -247,7 +242,7 @@ class MaxEntModel(object):
                 label = word_tag[1]
                 prev_label = 'start' if index == 0 else sentence[index-1][1]
 
-                initial_empirical_feature_probabilities += self.empirical_feature_count(word,label,prev_label)
+                initial_empirical_feature_probabilities += self.empirical_feature_count(word, label, prev_label)
         return initial_empirical_feature_probabilities
 
 
@@ -266,10 +261,9 @@ class MaxEntModel(object):
             word_tag: Tuple
             for index, word_tag in enumerate(sentence):
                 word = word_tag[0]
-                label = word_tag[1]
                 prev_label = 'start' if index == 0 else sentence[index-1][1]
 
-                initial_empirical_feature_probabilities += self.expected_feature_count(word,prev_label)
+                initial_empirical_feature_probabilities += self.expected_feature_count(word, prev_label)
 
         return initial_empirical_feature_probabilities
 
@@ -290,7 +284,4 @@ class MaxEntModel(object):
             for sentence in sentences:
                 self.train_batch_count += len(sentence)
             self.theta = self.theta + learning_rate * (self.empirical_feature_count_batch(sentences) - self.expected_feature_count_batch(sentences))
-        
-        # your code here
 
-        pass

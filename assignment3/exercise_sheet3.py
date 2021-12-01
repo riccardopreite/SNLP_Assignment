@@ -35,6 +35,7 @@ def test_model(A: MaxEntModel, B: MaxEntModel, test_corpus: list) ->  Tuple[floa
             predicted_for_B = B.predict(word, prevLabel)
             correct_A += 1 if predicted_for_A == label else 0
             correct_B += 1 if predicted_for_B == label else 0
+
     accuracy_A: float  = correct_A / total_words
     accuracy_B: float = correct_B / total_words
     print("End testing")
@@ -57,7 +58,7 @@ def plot_accuracy(color: str, word_number: list, accuracy: list, plot_name: str)
         plt.ylim([0,1.0])
         
         plt.title(plot_name)
-        plt.savefig(plot_name+'_30cpu_500.png')
+        plt.savefig(plot_name+'laptop.png')
         #plt.show()
         plt.clf()
 
@@ -79,8 +80,8 @@ def evaluate(corpus):
     test_corpus = random.sample(corpus,k=test_size)
     train_corpus = [sentence for sentence in corpus if sentence not in test_corpus]
 
-    print(len(test_corpus))
-    print(len(train_corpus))
+    # print(len(test_corpus))
+    # print(len(train_corpus))
 
     A = MaxEntModel()
     A.initialize(train_corpus)
@@ -145,5 +146,5 @@ def import_corpus(path_to_file: str) -> list:
 
 if __name__ == "__main__":
     corpus = import_corpus(CORPUS_FILE_NAME)
-    corpus_prova = corpus[:400]
+    corpus_prova = corpus[:30]
     evaluate(corpus_prova)
