@@ -57,7 +57,7 @@ def plot_accuracy(color: str, word_number: list, accuracy: list, plot_name: str)
         plt.ylim([0,1.0])
         
         plt.title(plot_name)
-        plt.savefig(plot_name+'gpu.png')
+        plt.savefig(plot_name+'_30cpu_500.png')
         #plt.show()
         plt.clf()
 
@@ -117,8 +117,8 @@ def evaluate(corpus):
     print (accuracies_A)
     print (accuracies_B)
 
-    plot_accuracy('blue', word_numbers_A, accuracies_A, 'Model A')
-    plot_accuracy('green', word_numbers_B, accuracies_B, 'Model B')
+    plot_accuracy('blue', word_numbers_A, accuracies_A, 'a_model')
+    plot_accuracy('green', word_numbers_B, accuracies_B, 'b_model')
 
 def import_corpus(path_to_file: str) -> list:
     sentences = []
@@ -145,5 +145,5 @@ def import_corpus(path_to_file: str) -> list:
 
 if __name__ == "__main__":
     corpus = import_corpus(CORPUS_FILE_NAME)
-    corpus_prova = corpus[:10]
+    corpus_prova = corpus[:400]
     evaluate(corpus_prova)
