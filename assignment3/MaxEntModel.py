@@ -62,20 +62,17 @@ class MaxEntModel(object):
         if self.active_features.get(active_features_key, None) is not None:
             return self.active_features[active_features_key]
         
-        keys_list = filter(
+        keys_list = list(filter(
             lambda key_pair:
                 (key_pair[0] == word and key_pair[1] == label)
                 or 
                 (key_pair[0] == prev_label and key_pair[1] == label),
-            self.feature_indices.keys())
-        theta_copy = set()#np.zeros(len(self.theta))
-        for key in keys_list:
-            feature_index = self.feature_indices[key] 
-            theta_copy.add(feature_index)
+            self.feature_indices.keys()))
 
-        self.active_features[active_features_key] = np.array(theta_copy)
+        active_index = [self.feature_indices[key] for key in keys_list]
+        self.active_features[active_features_key] = np.array(active_index)
         
-        return theta_copy
+        return self.active_features[active_features_key]
 
 
     # Exercise 2 a) ###################################################################
