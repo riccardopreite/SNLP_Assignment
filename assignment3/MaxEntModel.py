@@ -70,7 +70,7 @@ class MaxEntModel(object):
             self.feature_indices.keys()))
 
         active_index = [self.feature_indices[key] for key in keys_list]
-        self.active_features[active_features_key] = np.array(active_index)
+        self.active_features[active_features_key] = set(active_index)
         
         return self.active_features[active_features_key]
 
@@ -155,14 +155,13 @@ class MaxEntModel(object):
                     prev_label: string; the label of the word at position i-1
         Returns: (numpy) array containing the expected feature count
         '''
-        expted_feature_count = np.zeros(len(self.theta))
+        expted_feature_count = np.zeros(len(self.feature_indices))
 
         for label in self.labels:
             active_feature = self.get_active_features(label=label,word=word,prev_label=prev_label)
             probablity = self.conditional_probability(label=label,word=word,prev_label=prev_label)
             
             # active_feature = np.where(feature>0)
-
             for index in active_feature:
                 expted_feature_count[index] += probablity
 
@@ -271,8 +270,6 @@ class MaxEntModel(object):
                     batch_size: int; number of sentences to use in each iteration
                     learning_rate: float
         '''
-
-        self.theta = np.ones(len(self.theta))
 
         for iteration in range(number_iterations):
             sentences = random.sample(self.corpus,k=batch_size)
