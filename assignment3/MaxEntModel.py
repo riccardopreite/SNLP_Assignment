@@ -8,6 +8,22 @@ import numpy as np
 def vector_sum(vector: np.ndarray, indexes: np.ndarray):
     return sum(map(lambda i: vector[i], indexes))
 
+def create_feature_set(corpus: list) -> Tuple[set,dict]:
+            words_set = set()
+            labels = set()
+            features_set = set()
+            for sentence in corpus:
+                for word in sentence:
+                    words_set.add(word[0])
+                    labels.add(word[1])
+
+            features_set.update([(words, label) for words in words_set for label in labels])
+            features_set.update([(label1, label2) for label1 in labels for label2 in labels])
+            features_set.update([("start", label) for label in labels])
+        
+            feature_indices = { pair:index for index, pair in enumerate(features_set)   }
+            
+            return labels, feature_indices
 
 class MaxEntModel(object):
     # training corpus
@@ -33,7 +49,7 @@ class MaxEntModel(object):
 
     # Exercise 1 a) ###################################################################
 
-    def initialize(self, corpus: list):
+    def initializeold(self, corpus: list):
         '''
         Initialize the maximun entropy model, i.e., build the set of all features, the set of all labels
         and create an initial array 'theta' for the parameters of the model.
@@ -45,7 +61,22 @@ class MaxEntModel(object):
         self.train_batch_count = 0
         self.corpus = corpus
         self.feature_indices, self.labels = create_feature(corpus)
-        self.theta = np.ones(len(self.feature_indices))       
+        self.theta = np.ones(len(self.feature_indices))      
+
+    def initialize(self, corpus: list):
+
+        self.active_features = dict()
+        self.empirical_feature_counts = dict()
+        self.train_count = 0
+        self.train_batch_count = 0
+        self.corpus = corpus
+        self.labels = set()
+        self.active_features = dict()
+        self.empirical_feature_counts = dict()
+
+        self.labels, self.feature_indice = create_feature_set(corpus)
+
+        self.theta = np.ones(len(self.feature_indice)) 
 
     # Exercise 1 b) ###################################################################
 
@@ -91,8 +122,8 @@ class MaxEntModel(object):
             in the end sum overall e**(theta[i]*f(word,tag)) for each tag
          '''
         z = 0
-
-        for tag in self.labels:
+        label_list = list(self.labels)
+        for tag in label_list:
             active_feature = self.get_active_features(word, tag, prev_label)
             active_sum = vector_sum(self.theta, active_feature)
             
@@ -156,8 +187,8 @@ class MaxEntModel(object):
         Returns: (numpy) array containing the expected feature count
         '''
         expted_feature_count = np.zeros(len(self.feature_indices))
-
-        for label in self.labels:
+        label_list = list(self.labels)
+        for label in label_list:
             active_feature = self.get_active_features(label=label,word=word,prev_label=prev_label)
             probablity = self.conditional_probability(label=label,word=word,prev_label=prev_label)
             
@@ -202,6 +233,7 @@ class MaxEntModel(object):
             self.train_count += 1
             self.parameter_update(word, label, prev_label, learning_rate)
 
+
     # Exercise 4 c) ###################################################################
 
     def predict(self, word: str, prev_label: str) -> str:
@@ -212,11 +244,11 @@ class MaxEntModel(object):
         Returns: string; most probable label
         '''
         initial_label_probabilities: np.ndarray = np.zeros(len(self.labels))
-        
+        label_list = list(self.labels)
         for i in range(len(self.labels)):
-            initial_label_probabilities[i] = self.conditional_probability(word, self.labels[i], prev_label)
+            initial_label_probabilities[i] = self.conditional_probability(word, label_list[i], prev_label)
 
-        return self.labels[np.argmax(initial_label_probabilities)]
+        return label_list[np.argmax(initial_label_probabilities)]
 
     # Exercise 5 a) ###################################################################
 
