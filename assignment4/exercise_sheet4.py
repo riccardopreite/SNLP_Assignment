@@ -14,30 +14,29 @@ Returns: list of list; the first layer list contains the sentences of the corpus
 def import_corpus(path_to_file):
     sentences = []
     sentence = []
-    
-    
-    with open(path_to_file) as f:
-        for line in f:
-            line = line.strip()
-            
-            if len(line) == 0:
-                sentences.append(sentence)    
-                sentence = []
-                continue
-                    
-            pair = line.split(' ')
-            sentence.append((pair[0], pair[-1]))
-            
-        if len(sentence) > 0:
+    f = open(path_to_file)
+
+    while True:
+        line = f.readline()
+        if not line: break
+
+        line = line.strip()
+        if len(line) == 0:
             sentences.append(sentence)
-                
+            sentence = []
+            continue
+
+        parts = line.split(' ')
+        sentence.append((parts[0], parts[-1]))
+
+    f.close()
     return sentences
 
 
 
 if __name__ == "__main__":
     corpus_full = import_corpus('corpus_pos.txt')
-    corpus = corpus_full[1:50]
+    corpus = corpus_full[1:20]
 
     model = LinearChainCRF()
     model.initialize(corpus)
