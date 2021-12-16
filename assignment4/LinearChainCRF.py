@@ -337,7 +337,7 @@ class LinearChainCRF(object):
     
     
     # Exercise 2 ###################################################################
-    def most_likely_label_sequence(self, sentence):
+    def mmost_likely_label_sequence(self, sentence):
         '''
         Compute the most likely sequence of labels for the words in a given sentence.
         Parameters: sentence: list of strings representing a sentence.
@@ -385,3 +385,50 @@ class LinearChainCRF(object):
 
         return sequence
 
+    def most_likely_label_sequence(self, sentence):
+        '''
+        Compute the most likely sequence of labels for the words in a given sentence.
+        Parameters: sentence: list of strings representing a sentence.
+        Returns: list of lables; each label is an element of the set 'self.labels'
+        '''
+        deltaMatrix = [[None for x in range(len(sentence))] for y in range(len(self.labels))]
+        gammaMatrix = [[None for x in range(len(sentence))] for y in range(len(self.labels))]
+        sequenceTagging = [None for x in range(len(sentence))]
+
+        labelsList = list(self.labels)
+
+        ## INIT
+        for i in range(len(labelsList)):
+            label = labelsList[i]
+            word = sentence[0][0]
+            deltaMatrix[i][0] = np.log(self.psi(label, 'start', word))
+
+        ## INDUCTION
+        for i in range(1, len(sentence)):
+            for j in range(len(labelsList)):
+                maxVal = 0.0
+                maxValIndex = -1
+                for k in range(len(labelsList)):
+                    word = sentence[i][0]
+                    label = labelsList[j]
+                    prevLabel = labelsList[k]
+                    precDelta = deltaMatrix[k][i-1]
+                    value = np.log(self.psi(label, prevLabel, word)) + precDelta
+                    
+                    if value > maxVal:
+                        maxVal = value
+                        maxValIndex = k
+                
+                deltaMatrix[j][i] = maxVal
+                gammaMatrix[j][i] = maxValIndex
+
+        ## TOTAL
+        lastCol = [deltaMatrix[k][len(sentence)-1] for k in range(len(labelsList))]
+        nextIndex = lastCol.index(max(lastCol))
+        sequenceTagging[len(sentence)-1] = labelsList[nextIndex]
+
+        for i in range(len(sentence)-1, 0, -1):
+            nextIndex = gammaMatrix[nextIndex][i]
+            sequenceTagging[i-1] = labelsList[nextIndex]
+
+        return sequenceTagging

@@ -36,7 +36,7 @@ def import_corpus(path_to_file):
 
 if __name__ == "__main__":
     corpus_full = import_corpus('corpus_pos.txt')
-    corpus = corpus_full[1:200]
+    corpus = corpus_full[1:50]
 
     model = LinearChainCRF()
     model.initialize(corpus)
