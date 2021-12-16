@@ -1,8 +1,8 @@
 ################################################################################
 ## SNLP exercise sheet 4
 ################################################################################
-# from LinearChainCRF import LinearChainCRF
-from new import LinearChainCRF
+from LinearChainCRF import LinearChainCRF
+# from new import LinearChainCRF
 
 
 '''

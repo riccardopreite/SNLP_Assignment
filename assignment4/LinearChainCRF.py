@@ -4,11 +4,10 @@ import random
 import numpy as np
 from typing import Tuple
 
-from numpy.lib.function_base import gradient
 
 def create_feature_indices_and_tags(corpus: list) -> Tuple[set, dict]:
             words_unique = set()
-            tags_unique = set("start")
+            tags_unique = set()
             feature_set = set()
             for sentence in corpus:
                 words_unique.update(list(map(lambda tuple: tuple[0], sentence)))
@@ -16,6 +15,7 @@ def create_feature_indices_and_tags(corpus: list) -> Tuple[set, dict]:
 
             feature_set.update([(words, label) for words in words_unique for label in tags_unique])
             feature_set.update([(label1, label2) for label1 in tags_unique for label2 in tags_unique])
+            feature_set.update([('start', label2) for label2 in tags_unique])
             
             feature_indices: dict = {feature: index for index, feature in enumerate(feature_set)}  
 
@@ -61,33 +61,13 @@ class LinearChainCRF(object):
         self.empirical_features = dict()
         self.features = dict()
 
-        words = set()
         self.labels, self.features = create_feature_indices_and_tags(self.corpus)    
-        # for sentence in self.corpus:
-        #     word = list(map(lambda tuple: tuple[0], sentence))
-        #     labels = list(map(lambda tuple: tuple[1], sentence))
-        #     words.update(word)
-        #     self.labels.update(labels)
-        
-        # features = set()
-        # w_t_feature = [(word, label) for word in words for label in self.labels]
-        # t_t_feature = [(prev_label, label) for prev_label in self.labels for label in self.labels]
-        # s_t_feature = [('start', label) for label in self.labels]
 
-        # features.update(w_t_feature)
-        # features.update(t_t_feature)
-        # features.update(s_t_feature)
-
-        # index = 0
-        # for feature in features:
-        #     self.features[feature] = index
-        #     index += 1
-        
         self.theta = np.ones(len(self.features))
         print('Model initialized with a theta of len:',len(self.theta))
 
     
-    def get_active_features(self, word: str, label: str, prev_label: str) -> np.ndarray:
+    def mget_active_features(self, word: str, label: str, prev_label: str) -> np.ndarray:
         '''
         Compute the vector of active features.
         Parameters: word: string; a word at some position i of a given sentence
@@ -108,6 +88,33 @@ class LinearChainCRF(object):
                 active_features.add(feature_index)
 
         self.active_features[active_feature_key] = active_features      
+        return self.active_features[active_feature_key]
+
+    def get_active_features(self, word: str, label: str, prev_label: str) -> np.ndarray:
+        '''
+        Compute the vector of active features.
+        Parameters: word: string; a word at some position i of a given sentence
+                    label: string; a label assigned to the given word
+                    prev_label: string; the label of the word at position i-1
+        Returns: (numpy) array containing only zeros and ones.
+        '''
+        active_feature_key: tuple = (word, label, prev_label)
+        if active_feature_key in self.active_features.keys():
+            return self.active_features[active_feature_key]
+        
+        keys_list = list(
+            filter(
+                lambda key_pair:
+                    (key_pair[0] == word and key_pair[1] == label)
+                    or 
+                    (key_pair[0] == prev_label and key_pair[1] == label),
+                self.feature_indices.keys()
+            )
+        )
+        active_features: list = list(set([self.feature_indices[key] for key in keys_list]))
+        
+        self.active_features[active_feature_key] = np.array(active_features)
+        
         return self.active_features[active_feature_key]
 
 
@@ -323,10 +330,10 @@ class LinearChainCRF(object):
 
             empirical_count = empirical_counts[random_sentence_index]
             gradient: float = expected_counts - empirical_count
-            back = self.theta
+
             self.theta = self.theta + learning_rate * gradient
-            print("new theta:", self.theta, "\n")
-            print("comp:",(back==self.theta).all())
+            print("\t\tnew theta:", self.theta, "\n")
+
             self.current_forward_matrix = None
             self.current_backward_matrix = None
         
@@ -337,7 +344,7 @@ class LinearChainCRF(object):
     
     
     # Exercise 2 ###################################################################
-    def mmost_likely_label_sequence(self, sentence):
+    def most_likely_label_sequence(self, sentence):
         '''
         Compute the most likely sequence of labels for the words in a given sentence.
         Parameters: sentence: list of strings representing a sentence.
@@ -384,51 +391,3 @@ class LinearChainCRF(object):
             sequence[i-1] = labels[next]
 
         return sequence
-
-    def most_likely_label_sequence(self, sentence):
-        '''
-        Compute the most likely sequence of labels for the words in a given sentence.
-        Parameters: sentence: list of strings representing a sentence.
-        Returns: list of lables; each label is an element of the set 'self.labels'
-        '''
-        deltaMatrix = [[None for x in range(len(sentence))] for y in range(len(self.labels))]
-        gammaMatrix = [[None for x in range(len(sentence))] for y in range(len(self.labels))]
-        sequenceTagging = [None for x in range(len(sentence))]
-
-        labelsList = list(self.labels)
-
-        ## INIT
-        for i in range(len(labelsList)):
-            label = labelsList[i]
-            word = sentence[0][0]
-            deltaMatrix[i][0] = np.log(self.psi(label, 'start', word))
-
-        ## INDUCTION
-        for i in range(1, len(sentence)):
-            for j in range(len(labelsList)):
-                maxVal = 0.0
-                maxValIndex = -1
-                for k in range(len(labelsList)):
-                    word = sentence[i][0]
-                    label = labelsList[j]
-                    prevLabel = labelsList[k]
-                    precDelta = deltaMatrix[k][i-1]
-                    value = np.log(self.psi(label, prevLabel, word)) + precDelta
-                    
-                    if value > maxVal:
-                        maxVal = value
-                        maxValIndex = k
-                
-                deltaMatrix[j][i] = maxVal
-                gammaMatrix[j][i] = maxValIndex
-
-        ## TOTAL
-        lastCol = [deltaMatrix[k][len(sentence)-1] for k in range(len(labelsList))]
-        nextIndex = lastCol.index(max(lastCol))
-        sequenceTagging[len(sentence)-1] = labelsList[nextIndex]
-
-        for i in range(len(sentence)-1, 0, -1):
-            nextIndex = gammaMatrix[nextIndex][i]
-            sequenceTagging[i-1] = labelsList[nextIndex]
-
-        return sequenceTagging
