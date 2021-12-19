@@ -1,9 +1,6 @@
-import math
-import sys
 import random
 import numpy as np
 from typing import Tuple
-
 
 def create_feature_indices_and_tags(corpus: list) -> Tuple[set, dict]:
             words_unique = set()
@@ -18,13 +15,6 @@ def create_feature_indices_and_tags(corpus: list) -> Tuple[set, dict]:
             feature_set.update([('start', label2) for label2 in tags_unique])
             
             feature_indices: dict = {feature: index for index, feature in enumerate(feature_set)}  
-
-            feature_index = 0
-            # feature_indices: dict = dict()
-            # for feature in feature_set:
-            #     feature_indices[feature] = feature_index
-            #     feature_index += 1
-
             return tags_unique, feature_indices
 
 class LinearChainCRF(object):
@@ -66,30 +56,6 @@ class LinearChainCRF(object):
         self.theta = np.ones(len(self.features))
         print('Model initialized with a theta of len:',len(self.theta))
 
-    
-    def mget_active_features(self, word: str, label: str, prev_label: str) -> np.ndarray:
-        '''
-        Compute the vector of active features.
-        Parameters: word: string; a word at some position i of a given sentence
-                    label: string; a label assigned to the given word
-                    prev_label: string; the label of the word at position i-1
-        Returns: (numpy) array containing only zeros and ones.
-        '''
-        active_feature_key: tuple = (word, label, prev_label)
-        if active_feature_key in self.active_features.keys():
-            return self.active_features[active_feature_key]
-        
-        active_features = set()
-        for key in self.features.keys():
-            word_f = key[0]
-            tag_f = key[1]
-            feature_index = self.features[key]
-            if (word == word_f and label == tag_f) or (prev_label == word_f and label == tag_f):
-                active_features.add(feature_index)
-
-        self.active_features[active_feature_key] = active_features      
-        return self.active_features[active_feature_key]
-
     def get_active_features(self, word: str, label: str, prev_label: str) -> np.ndarray:
         '''
         Compute the vector of active features.
@@ -108,15 +74,14 @@ class LinearChainCRF(object):
                     (key_pair[0] == word and key_pair[1] == label)
                     or 
                     (key_pair[0] == prev_label and key_pair[1] == label),
-                self.feature_indices.keys()
+                self.features.keys()
             )
         )
-        active_features: list = list(set([self.feature_indices[key] for key in keys_list]))
+        active_features: list = list(set([self.features[key] for key in keys_list]))
         
-        self.active_features[active_feature_key] = np.array(active_features)
+        self.active_features[active_feature_key] = active_features
         
         return self.active_features[active_feature_key]
-
 
     def empirical_feature_count(self, word: str, label: str, prev_label: str) -> np.ndarray:
         '''
@@ -140,13 +105,11 @@ class LinearChainCRF(object):
         self.empirical_features[empirical_feature_key] = empirical_theta
         return self.empirical_features[empirical_feature_key]
 
-
     def psi(self, word: str, label: str, prev_label: str):
         active_features = self.get_active_features(word, label, prev_label)
         summed = sum(map(lambda i: self.theta[i], active_features))
         return np.exp(summed)
-
-    # Exercise 1 a) ###################################################################
+    
     def forward_variables(self, sentence: list) -> list:
         '''
         Compute the forward variables for a given sentence.
@@ -157,6 +120,8 @@ class LinearChainCRF(object):
             return self.current_forward_matrix
 
         forward_matrix: list = [dict() for pair in range(len(sentence))]
+        labels = list(self.labels)
+
         '''Initialization'''
         word: str = sentence[0][0]
         prev_label: str = "start"
@@ -165,22 +130,22 @@ class LinearChainCRF(object):
             forward_matrix[0][tag] = self.psi(word, tag, prev_label) 
 
         '''Recursion'''
-        for t in range(1,len(sentence)):
-            word_t = sentence[t][0]
-
-            for tag_j in list(self.labels):
+        for t in range(1, len(sentence)):
+            word_t:str = sentence[t][0]
+            '''Label'''
+            for tag_j in labels:
                 new_alpha: float = 0.0
-                for tag_i in list(self.labels):
-                    psi = self.psi(word_t, tag_j, tag_i)
-                    prevAlpha = forward_matrix[t-1][tag_i]
-                    new_alpha += psi * prevAlpha
+                '''Prev label'''
+                for tag_i in labels:
+                    psi = self.psi(word_t,tag_j,tag_i)
+                    old_alpha = forward_matrix[t-1][tag_i]
+                    new_alpha = new_alpha + (psi*old_alpha)
                 forward_matrix[t][tag_j] = new_alpha
 
         self.current_forward_matrix = forward_matrix
-        return forward_matrix        
-        
-        
-    def backward_variables(self, sentence) -> list:
+        return self.current_forward_matrix
+
+    def backward_variables(self, sentence: list) -> list:
         '''
         Compute the backward variables for a given sentence.
         Parameters: sentence: list of strings representing a sentence.
@@ -190,6 +155,7 @@ class LinearChainCRF(object):
             return self.current_backward_matrix
 
         backward_matrix: list = [dict() for pair in range(len(sentence))]
+        labels = list(self.labels)
 
         '''Initialization'''
         for tag in list(self.labels):
@@ -199,23 +165,21 @@ class LinearChainCRF(object):
         for t in range(len(sentence)-2,-1,-1):
             word_t = sentence[t+1][0]
 
-            for tag_j in list(self.labels):
-                new_alpha: float = 0.0
-                for tag_i in list(self.labels):
-                    psi = self.psi(word_t, tag_i, tag_j)
-                    alpha_prev = backward_matrix[t+1][tag_i]
-                    new_alpha += psi * alpha_prev
+            '''Prev label'''
+            for tag_i in labels:
+                new_beta: float = 0.0
+                '''Label'''
+                for tag_j in labels:
+                    psi = self.psi(word_t, tag_j, tag_i)
+                    old_beta = backward_matrix[t+1][tag_i]
+                    new_beta = new_beta + (psi*old_beta)
                 
-                backward_matrix[t][tag_j] = new_alpha
+                backward_matrix[t][tag_i] = new_beta
 
         self.current_backward_matrix = backward_matrix
-        return backward_matrix
-        
-        
-        
-    
-    # Exercise 1 b) ###################################################################
-    def compute_z(self, sentence) -> float:
+        return self.current_backward_matrix
+
+    def compute_z(self, sentence: list) -> float:
         '''
         Compute the partition function Z(x).
         Parameters: sentence: list of strings representing a sentence.
@@ -224,12 +188,13 @@ class LinearChainCRF(object):
         word = sentence[0][0]
         prev_label = 'start'
 
-        z = 0
-        for i in range(len(list(self.labels))):
+        Z:float = 0
+        sentence_lenght = len(sentence)
+        for i in range(sentence_lenght):
             label = list(self.labels)[i]
-            psi = self.psi(label, prev_label, word)
+            psi = self.psi(word, label, prev_label)
             beta = backward_matrix[i][0]
-            z += psi * beta
+            Z += psi * beta
         '''
         
         forward_matrix: np.ndarray = self.forward_variables(sentence)
@@ -240,10 +205,6 @@ class LinearChainCRF(object):
 
         return Z
 
-        
-        
-            
-    # Exercise 1 c) ###################################################################
     def marginal_probability(self, sentence: list, t:int, y_t: str, y_t_minus_one: str) -> float:
         '''
         Compute the marginal probability of the labels given by y_t and y_t_minus_one given a sentence.
@@ -262,13 +223,10 @@ class LinearChainCRF(object):
         alpha = 1 if t == 0 else forward_matrix[t-1][y_t_minus_one]
         beta = 1 if t == len(sentence)-1 else backward_matrix[t][y_t]
         
-        return alpha*psi*beta*norm_Z
-    
-    
-    
-    
-    # Exercise 1 d) ###################################################################
-    def expected_feature_count(self, sentence, feature) -> float:
+        probability: float = alpha*psi*beta*norm_Z
+        return probability
+        
+    def expected_feature_count(self, sentence: list, feature) -> float:
         '''
         Compute the expected feature count for the feature referenced by 'feature'
         Parameters: sentence: list of strings representing a sentence.
@@ -278,25 +236,24 @@ class LinearChainCRF(object):
         '''
         expected_count = 0.0
         word = sentence[0][0]
+        labels = list(self.labels)
+        prev_tag = 'start'
 
-        for tag in list(self.labels):
-            active_features = self.get_active_features(word, tag, 'start')
+        '''first case'''
+        for tag in labels:
+            active_features = self.get_active_features(word, tag, prev_tag)
             if feature in active_features:
-                expected_count += self.marginal_probability(sentence, 0, tag, 'start')
+                expected_count = expected_count + self.marginal_probability(sentence, 0, tag, prev_tag)
 
-
-        for t in range(1, len(sentence)):
-            word = sentence[t][0]
-            for tag in list(self.labels):
-                for prev_tag in list(self.labels):
+        for t in range (1, len(sentence)):
+            word_t = sentence[t][0]
+            for tag in labels:
+                for prev_tag in labels:
                     active_features = self.get_active_features(word, tag, prev_tag)
                     if feature in active_features:
-                        expected_count += self.marginal_probability(sentence, t, tag, prev_tag)
-
+                        expected_count = expected_count + self.marginal_probability(sentence, t, tag, prev_tag)
         return expected_count
     
-    
-    # Exercise 1 e) ###################################################################
     def train(self, num_iterations, learning_rate=0.01):
         '''
         Method for training the CRF.
@@ -311,40 +268,35 @@ class LinearChainCRF(object):
             for t in range(len(sentence)):
                 word = sentence[t][0]
                 tag = sentence[t][1]
-                prev_tag = 'start' if t==0 else sentence[t-1][1]
+                prev_tag = sentence[t-1][1] if t > 0 else 'start'
 
                 empirical_counts[i] += self.empirical_feature_count(word, tag, prev_tag)
         print("...End of computing empirical counts")
 
-        print("Training started with Num_iteration:",num_iterations,"...")
+        print("Training started with Num_iteration:",num_iterations,"and learning rate",learning_rate,"...")
         for i in range(num_iterations):
             print("\tTraining on iteration", i+1)
             random_sentence_index = random.choice(range(len(self.corpus)))
             random_sentence = self.corpus[random_sentence_index]
 
             expected_counts = np.zeros(len(self.features))
-            
+            empirical_count = empirical_counts[random_sentence_index]
 
             for feature in self.features.values():
                 expected_counts[feature] = self.expected_feature_count(random_sentence, feature)
 
-            empirical_count = empirical_counts[random_sentence_index]
-            gradient: float = expected_counts - empirical_count
+            
+            gradient: float = empirical_count - expected_counts 
 
             self.theta = self.theta + learning_rate * gradient
-            print("\t\tnew theta:", self.theta, "\n")
+            print("\t\tTheta:", self.theta, "\n")
 
             self.current_forward_matrix = None
             self.current_backward_matrix = None
+              
+    
         
-    
-
-    
-    
-    
-    
-    # Exercise 2 ###################################################################
-    def most_likely_label_sequence(self, sentence):
+    def most_likely_label_sequence(self, sentence: list):
         '''
         Compute the most likely sequence of labels for the words in a given sentence.
         Parameters: sentence: list of strings representing a sentence.
@@ -356,12 +308,11 @@ class LinearChainCRF(object):
 
         labels = list(self.labels)
         word = sentence[0][0]
-        
         '''Initialization'''
         for t in range(len(labels)):
             label = labels[t]    
             delta[t][0] = np.log(self.psi(word, label, 'start'))
-        
+
         '''Recursion'''
         for t in range(1, len(sentence)):
             for j in range(len(labels)):
@@ -385,9 +336,8 @@ class LinearChainCRF(object):
         last = [delta[k][len(sentence)-1] for k in range(len(labels))]
         next = last.index(max(last))
         sequence[len(sentence)-1] = labels[next]
-
         for i in range(len(sentence)-1, 0, -1):
             next = gamma[next][i]
             sequence[i-1] = labels[next]
-
         return sequence
+
