@@ -12,7 +12,7 @@ parser.add_argument('--lr', type=float, nargs='?',
 parser.add_argument('--test', type=str, nargs='?',
                     help='file of the model to load')
 parser.add_argument('--mode', type=str, nargs='?',
-                    help='model to test. "full" test on corpus_pos.txt, "example" test on corpus_example.txt, "obama" test on corpus_obama. Default full')
+                    help='model to test. "full" test on corpus_pos.txt, "slice" test on 50 sentence of corpus_pos.txt, "example" test on corpus_example.txt, "obama" test on corpus_obama. Default slice')
 
 '''
 This function can be used for importing the corpus.
@@ -67,8 +67,8 @@ def example(line: int, learning_rate: float):
     print("\n", model.most_likely_label_sequence(corpus[2]))
     print("\n",corpus[2])
 
-def full(line: int, learning_rate: float):
-    print("Training on full corpus")
+def slice(line: int, learning_rate: float):
+    print("Training on slice corpus")
     corpus_full = import_corpus('corpus_pos.txt')
     corpus = []
     if line != 0:
@@ -82,9 +82,22 @@ def full(line: int, learning_rate: float):
     model.initialize(corpus)
 
     model.train(20, learning_rate)
-    save("full", learning_rate, model)
+    save("slice", learning_rate, model)
     print("\n", model.most_likely_label_sequence(corpus[line]))
     print("\n",corpus[line])
+
+def full(line: int, learning_rate: float):
+    print("Training on full corpus")
+    corpus_full = import_corpus('corpus_pos.txt')
+    test_sentence = corpus_full.pop(line)
+    
+    model = LinearChainCRF()
+    model.initialize(corpus_full)
+
+    model.train(20, learning_rate)
+    save("full", learning_rate, model)
+    print("\n", model.most_likely_label_sequence(test_sentence))
+    print("\n",test_sentence)
 
 def save(mode:str, learning_rate: float, model):
         exist = os.path.exists("models")
@@ -106,13 +119,13 @@ def test(model: LinearChainCRF, test_line: int):
     print("\n", model.most_likely_label_sequence(corpus[test_line]))
     print("\n",corpus[test_line])
 
-function = {"full":full,"example":example,"obama":obama}
+function = {"full":full, "slice":slice, "example":example, "obama":obama}
 if __name__ == "__main__":
     args = parser.parse_args()
 
     line = args.line if args.line != None else 0
     learning_rate = args.lr if args.lr != None else 0.01
-    mode = args.mode if args.mode != None else "full"
+    mode = args.mode if args.mode != None else "slice"
     
     
     if args.test != None:
