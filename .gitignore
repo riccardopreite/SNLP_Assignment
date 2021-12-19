@@ -4,3 +4,12 @@ assignment1/__pycache__/
 assignment2/__pycache__/
 
 assignment3/__pycache__/
+
+assignment4/__pycache__/
+assignment4/models/
+
+assignment4/oldLinearChainCRF.py
+
+assignment4/mat.py
+
+assignment4/p.py
