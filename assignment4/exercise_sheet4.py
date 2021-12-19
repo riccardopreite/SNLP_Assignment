@@ -93,7 +93,7 @@ def full(line: int, learning_rate: float, iteration_number:int, size: int):
     
     corpus_full = import_corpus('corpus_pos.txt')
     test_sentence = corpus_full.pop(line)
-    print("Training on full corpus of size ",corpus_full)
+    print("Training on full corpus of size ",len(corpus_full))
     
     model = LinearChainCRF()
     model.initialize(corpus_full)
