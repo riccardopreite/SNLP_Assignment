@@ -1,3 +1,4 @@
+#Riccardo Preite 4196104
 import random
 import numpy as np
 from typing import Tuple

@@ -1,6 +1,8 @@
+# Riccardo Preite 4196104
 ################################################################################
-## SNLP exercise sheet 4
+## SNLP exercise sheet 4 
 ################################################################################
+
 from LinearChainCRF import LinearChainCRF
 import argparse, datetime, os, random, pickle
 # Instantiate the parser
@@ -63,10 +65,10 @@ def example(line: int, learning_rate: float, iteration_number:int, size:int):
     corpus = import_corpus('corpus_example.txt')
 
     model = LinearChainCRF()
-    model.initialize(corpus[:2],2)
+    model.initialize(corpus[:2])
 
     model.train(iteration_number, learning_rate)
-    save("example", learning_rate, model)
+    save("example", learning_rate, model,2)
 
     print("\n", model.most_likely_label_sequence(corpus[2]))
     print("\n",corpus[2])
