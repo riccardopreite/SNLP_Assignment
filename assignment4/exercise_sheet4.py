@@ -109,8 +109,7 @@ def save(mode:str, learning_rate: float, model, size: int):
             os.makedirs("models")
 
         date:str = datetime.datetime.now().strftime("day_%Y-%m-%d_time_%H-%M-%S_")
-        name = "models/"+mode+"_"+date+'_lr_'+str(learning_rate)+"_train_size_"+size+".pkl"
-        print(model)
+        name = "models/"+mode+"_"+date+'_lr_'+str(learning_rate)+"_train_size_"+str(size)+".pkl"
         pickle.dump(model, open( name, "wb" ),-1)
 
 def load(filename: str) -> LinearChainCRF:
