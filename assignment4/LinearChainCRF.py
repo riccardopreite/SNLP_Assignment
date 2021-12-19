@@ -249,7 +249,7 @@ class LinearChainCRF(object):
             word_t = sentence[t][0]
             for tag in labels:
                 for prev_tag in labels:
-                    active_features = self.get_active_features(word, tag, prev_tag)
+                    active_features = self.get_active_features(word_t, tag, prev_tag)
                     if feature in active_features:
                         expected_count = expected_count + self.marginal_probability(sentence, t, tag, prev_tag)
         return expected_count
