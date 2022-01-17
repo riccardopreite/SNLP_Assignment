@@ -19,6 +19,8 @@ parser.add_argument('--ite', type=int, nargs='?',
                     help='Number of itearation for the training. Default 20')
 parser.add_argument('--size', type=int, nargs='?',
                     help='Train size. Default 50')
+parser.add_argument('--k', type=int, nargs='?',
+                    help='Minium frequency for each feature. Default 3')
 
 '''
 This function can be used for importing the corpus.
@@ -133,6 +135,7 @@ if __name__ == "__main__":
     mode = args.mode if args.mode != None else "slice"
     iteration_number = args.ite if args.ite != None else 20
     size = args.size if args.size != None else 50
+    k = args.k if args.k != None else 3
     
     if args.test != None:
         '''Test'''

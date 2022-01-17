@@ -41,7 +41,7 @@ class LinearChainCRF(object):
     
    
     
-    def initialize(self, corpus):
+    def initialize(self, corpus, k=3):
         '''
         build set two sets 'self.features' and 'self.labels'
         '''
@@ -52,6 +52,7 @@ class LinearChainCRF(object):
         self.empirical_features = dict()
         self.features = dict()
 
+        self.k = k
         self.labels, self.features = create_feature_indices_and_tags(self.corpus)    
 
         self.theta = np.ones(len(self.features))
@@ -261,6 +262,10 @@ class LinearChainCRF(object):
         Parameters: num_iterations: int; number of training iterations
                     learning_rate: float
         '''
+        # print("old len of feature",str(len(self.features)))
+        # self.features = [feature for feature in self.features if self.features[feature] > self.k]
+        # print("new len of feature",str(len(self.features)))
+
         empirical_counts = [np.zeros(len(self.features)) for x in range(len(self.corpus))]
         
         print("Computing empirical counts...")
@@ -273,7 +278,10 @@ class LinearChainCRF(object):
 
                 empirical_counts[i] += self.empirical_feature_count(word, tag, prev_tag)
         print("...End of computing empirical counts")
-
+        for i in empirical_counts:
+            # print(i)
+            if i.any() == 1:
+                print("UNO PIU DI 3")
         print("Training started with Num_iteration:",num_iterations,"and learning rate",learning_rate,"...")
         for i in range(num_iterations):
             print("\tTraining on iteration", i+1)
@@ -282,7 +290,7 @@ class LinearChainCRF(object):
 
             expected_counts = np.zeros(len(self.features))
             empirical_count = empirical_counts[random_sentence_index]
-
+            
             for feature in self.features.values():
                 expected_counts[feature] = self.expected_feature_count(random_sentence, feature)
 
